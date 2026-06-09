@@ -8,8 +8,11 @@ so the computation has an observable result.
 
 import sys
 from typing import List
+import time
 
 Matrix = List[List[float]]
+matmul_slow_time = []
+singlecell_time = []
 
 #The matrix entries are initialized deterministically so that every run uses
 #the same data. The exact constants are not important; they only create 
@@ -31,10 +34,13 @@ def matmul_slow(a: Matrix, b: Matrix, c: Matrix, n: int) -> None:
     for i in range(n):
         for j in range(n):
             total = 0.0
+            start = time.perf_counter_ns()
             for k in range(n):
                 total += a[i][k] * b[k][j]
             c[i][j] = total
-
+            end = time.perf_counter_ns()
+            duration = end - start
+            singlecell_time.append(duration)
 
 def checksum(m: Matrix, n: int) -> float:
     total = 0.0
@@ -80,9 +86,18 @@ def main(argv: list[str]) -> int:
     c = zero_matrix(n)
 
     for _ in range(reps):
+        start = time.perf_counter_ns()
         matmul_slow(a, b, c, n)
+        end = time.perf_counter_ns()
+        time_taken = end - start
+        matmul_slow_time.append(time_taken)
+        
+    avg_matmul_slow_time = sum(matmul_slow_time)/len(matmul_slow_time)
+    avg_singlecell_time = sum(singlecell_time)/len(singlecell_time)
 
     print(f"n={n} reps={reps} checksum={checksum(c, n):.6f}")
+    print(f"average time for matmul_slow is: {avg_matmul_slow_time} ns")
+    print(f"average time for singlecell is: {avg_singlecell_time} ns")
     return 0
 
 

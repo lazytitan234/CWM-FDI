@@ -8,8 +8,10 @@ so the computation has an observable result.
 
 import sys
 from typing import List
+import time
 
 Matrix = List[List[float]]
+matmulfast_time_taken = []
 
 #The matrix entries are initialized deterministically so that every run uses
 #the same data. The exact constants are not important; they only create 
@@ -111,9 +113,15 @@ def main(argv: list[str]) -> int:
     c = zero_matrix(n)
 
     for _ in range(reps):
+        start = time.perf_counter_ns()
         matmul_fast3(a, b, c, n)
+        end = time.perf_counter_ns()
+        time_taken = end - start
+        matmulfast_time_taken.append(time_taken)
 
+    avgtime = sum(matmulfast_time_taken) / len(matmulfast_time_taken)
     print(f"n={n} reps={reps} checksum={checksum(c, n):.6f}")
+    print(f"average time for matmul_fast3 is: {avgtime} ns")
     return 0
 
 
