@@ -12,13 +12,7 @@
  *
  * Returns:
  *     Current TSC value in CPU cycles.
- */
-static inline uint64_t read_tsc(void) {
-    _mm_lfence();
-    uint64_t t = __rdtsc();
-    _mm_lfence();
-    return t;
-}
+
 
 /*
  * Read the CPU frequency from /proc/cpuinfo.
@@ -151,14 +145,14 @@ uint64_t min_consecutive_diff(size_t num, const char *filename) {
      * Collect TSC readings.
      */
     for (size_t i = 0; i < num; i++) {
-        timestamps[i] = read_tsc();
+        timestamps[i] = __rdtsc();
+
     }
 
     /*
      * Initialize minimum difference using first pair.
      */
     uint64_t min_diff = timestamps[1] - timestamps[0];
-
     /*
      * Compute all consecutive differences and track minimum.
      */
