@@ -44,6 +44,7 @@ def safe_check(username: str, password: str) -> bool:
         
         # code below is vulnerable. Fix it!
         # then replace _vulnerable_check with safe_check in login_view() below
+        # added a randomly generated delay when incorrect input is detected
         if i >= len(SECRET_PASSWORD) or ch != SECRET_PASSWORD[i]:
             time.sleep(rand.random() * 10e-2)
             return False
