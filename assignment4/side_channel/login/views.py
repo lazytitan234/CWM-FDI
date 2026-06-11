@@ -41,16 +41,19 @@ def safe_check(username: str, password: str) -> bool:
     for i, ch in enumerate(password):
         # i == index of the current character
         # ch == current character
-        
+    
         # code below is vulnerable. Fix it!
         # then replace _vulnerable_check with safe_check in login_view() below
         # added a randomly generated delay when incorrect input is detected
+        flag = True
         if i >= len(SECRET_PASSWORD) or ch != SECRET_PASSWORD[i]:
-            time.sleep(rand.random() * 10e-2)
-            return False
+            flag = False
         time.sleep(DELAY_PER_CHAR)
 
-    return len(password) == len(SECRET_PASSWORD)
+    if flag == True:
+        return True
+    else:
+        return False
 
 
 
