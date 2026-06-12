@@ -103,8 +103,8 @@ def main(argv):
     #consider scaling with input size:
     list_of_time_taken_matmulfast3 = []
     list_of_time_taken_numpy = []
-    iteration_num = [i for i in range(10)]
-    for i in range(1, 11):
+    iteration_num = [i for i in range(16)]
+    for i in range(1, 17):
         new_input_size = int(i * int(input_size) / 10)
         result = s.run(["/usr/bin/time", "-v", "python3", programme, str(new_input_size), str(rep)], capture_output=True, text=True)
         match = re.search(r"MATMUL_FAST3_WALL_S=(\d+)", result.stdout)
