@@ -4,6 +4,9 @@ import os
 import pstats
 import re
 from pstats import SortKey
+import numpy as np
+import time
+import matplotlib.pyplot as plt
 
 programme = "matmul_fast.py"
 
@@ -13,6 +16,20 @@ def usage():
     "1. input size to matmul_fast.py -- the dimension of the square matrices we are multiplying\n"
     "2. rep for matmul_fast.py -- number of times to perform matrix multiplication\n"
     "3. number of functions we want from the cProfile output")
+    
+def pythonstd_matmul(size, rep):
+    seed1 = 1.0
+    seed2 = 2.0
+    A = [[seed1 + ((i * 131 + j * 17) % 100) / 100.0 for j in range(size)] for i in range(size)]
+    A = np.array(A)
+    B = [[seed2 + ((i * 131 + j * 17) % 100) / 100.0 for j in range(size)] for i in range(size)]
+    B = np.array(B)
+    start = time.perf_counter()
+    for i in range(rep):
+        C = A @ B
+    end = time.perf_counter()
+    time_taken = end - start 
+    return time_taken
     
     
 def main(argv):
@@ -57,9 +74,48 @@ def main(argv):
     print(result1.stderr)
     
     #print out peak memory usage
-    match = re.search(r"Maximum resident set size \(kbytes\):\s+(\d+)", result0.stderr)
-    peak_mem_kb = match.group(1) if match else "unknown"
-    print(f"\033[31mThe peak memory usage of the programme is:\033[0m {peak_mem_kb} kB")
+    match_memory = re.search(r"Maximum resident set size \(kbytes\):\s+(\d+)", result0.stderr)
+    peak_mem_kb = match_memory.group(1) if match_memory else "unknown"
+    print(f"\033[31mThe peak memory usage of the programme is:\033[0m {peak_mem_kb} kB\n")
+    
+    #performance bottleneck detector -- consider how long python's standard matmul takes
+    standard_time = pythonstd_matmul(int(input_size), int(rep))
+    print(f"\033[31mThe time taken by numpy's matmul is:\033[0m {standard_time}s")
+    
+    #consider how long our matmul_fast3 took
+    result = s.run(
+        ["python3", programme, str(input_size), str(rep)],
+        capture_output=True,
+        text=True
+    )
+
+    match = re.search(r"MATMUL_FAST3_WALL_S=(\d+)", result.stdout)
+    if match:
+        wall_s = int(match.group(1))/ 10e9
+        print(f"\033[31mTime taken by matmul_fast3 is \033[0m{wall_s}s\n")
+        if wall_s > (5 * standard_time):
+            print(f"\033[31mPython's standard Matmul using np is more than 5x faster. Potential inefficiency discovered.\033[0m")
+    else:
+        print("Could not find wall-clock time in output.")
+        print("Program output was:")
+        print(result.stdout)
+        print(result.stderr)
+    
+    #consider scaling with input size:
+    list_of_time_taken = []
+    iteration_num = [i for i in range(10)]
+    for i in range(1, 11):
+        new_input_size = int(i * int(input_size) / 10)
+        result = s.run(["/usr/bin/time", "-v", "python3", programme, str(new_input_size), str(rep)], capture_output=True, text=True)
+        match = re.search(r"MATMUL_FAST3_WALL_S=(\d+)", result.stdout)
+        if match:
+            wall_s = int(match.group(1))/ 10e9
+            list_of_time_taken.append(wall_s)
+    plt.plot(iteration_num, list_of_time_taken) 
+    plt.title("Visualisation of scaling of matmul_fast3 with input size")
+    plt.xlabel("scaled input size")
+    plt.ylabel("time taken by matmul_fast3")
+    plt.show()
     
 if __name__ == "__main__":
     raise SystemExit(main(sys.argv))

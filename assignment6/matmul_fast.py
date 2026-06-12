@@ -8,6 +8,7 @@ so the computation has an observable result.
 
 import sys
 from typing import List
+import time
 
 
 Matrix = List[List[float]]
@@ -111,9 +112,13 @@ def main(argv: list[str]) -> int:
 
     c = zero_matrix(n)
 
+    start = time.perf_counter_ns()
     for _ in range(reps):
         matmul_fast3(a, b, c, n)
 
+    end = time.perf_counter_ns()
+    time_taken = end - start
+    print(f"MATMUL_FAST3_WALL_S={time_taken}")
     #print(f"n={n} reps={reps} checksum={checksum(c, n):.6f}")
     return 0
 
