@@ -1,6 +1,5 @@
 import subprocess as s
 import sys
-import os 
 import pstats
 import re
 from pstats import SortKey
@@ -11,11 +10,11 @@ import matplotlib.pyplot as plt
 programme = "matmul_fast.py"
 
 def usage():
-    print(f"This is a script that runs cProfile on matmul_fast.py.\n"
+    print(f"This is a script that runs cProfile on {programme}.\n"
     "It takes in 3 arguments:\n"
     "1. input size to matmul_fast.py -- the dimension of the square matrices we are multiplying\n"
-    "2. rep for matmul_fast.py -- number of times to perform matrix multiplication\n"
-    "3. number of functions we want from the cProfile output")
+    f"2. rep for {programme} -- number of times to perform matrix multiplication\n"
+    "3. number of culprit functions we want from the cProfile output")
     
 def pythonstd_matmul(size, rep):
     seed1 = 1.0
@@ -102,7 +101,8 @@ def main(argv):
         print(result.stderr)
     
     #consider scaling with input size:
-    list_of_time_taken = []
+    list_of_time_taken_matmulfast3 = []
+    list_of_time_taken_numpy = []
     iteration_num = [i for i in range(10)]
     for i in range(1, 11):
         new_input_size = int(i * int(input_size) / 10)
@@ -110,11 +110,18 @@ def main(argv):
         match = re.search(r"MATMUL_FAST3_WALL_S=(\d+)", result.stdout)
         if match:
             wall_s = int(match.group(1))/ 10e9
-            list_of_time_taken.append(wall_s)
-    plt.plot(iteration_num, list_of_time_taken) 
+            list_of_time_taken_matmulfast3.append(wall_s)
+        fast_result = pythonstd_matmul(int(new_input_size), int(rep))
+        list_of_time_taken_numpy.append(fast_result)
+        
+    plt.plot(iteration_num, list_of_time_taken_matmulfast3, label='matmulfast3') 
+    plt.plot(iteration_num, list_of_time_taken_numpy, label='numpy')
+    
     plt.title("Visualisation of scaling of matmul_fast3 with input size")
     plt.xlabel("scaled input size")
-    plt.ylabel("time taken by matmul_fast3")
+    plt.ylabel("time taken by matmul_fast3 and numpy")
+    plt.legend(loc="lower right")
+
     plt.show()
     
 if __name__ == "__main__":
