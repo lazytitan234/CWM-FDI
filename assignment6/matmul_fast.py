@@ -8,7 +8,6 @@ so the computation has an observable result.
 
 import sys
 from typing import List
-import tracemalloc
 
 
 Matrix = List[List[float]]
@@ -104,7 +103,6 @@ def parse_args(argv: list[str]) -> tuple[int, int]:
 
 
 def main(argv: list[str]) -> int:
-    tracemalloc.start()
     n, reps = parse_args(argv)
 
     #Initialise around a seed.
@@ -117,9 +115,6 @@ def main(argv: list[str]) -> int:
         matmul_fast3(a, b, c, n)
 
     #print(f"n={n} reps={reps} checksum={checksum(c, n):.6f}")
-    current, peak = tracemalloc.get_traced_memory()
-    print(f"peak={peak} bytes")
-    tracemalloc.stop()
     return 0
 
 
